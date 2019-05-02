@@ -1,0 +1,61 @@
+---
+title: "Shiny App"
+output: html_document
+---
+
+```{r shinyapp}
+library(shiny)
+library(datasets)
+library(ggplot2)
+data(Titanic)
+titanicdata<-as.data.frame(Titanic)
+
+ui<-fluidPage(
+   headerPanel("Titanic Survival Prediction"),
+  p("Select the options below"),
+  sidebarPanel(
+  radioButtons("c",label=h3("Class Passenger"),choices=list("1st class"="1st","2nd class"="2nd","3rd class"="3rd"),selected="1st"),
+  radioButtons("s",label=h3("Sex"),choices=list("Male"="Male","Female"="Female"),selected="Female"),
+  radioButtons("a",label=h3("Age"),choices=list("Child"="Child","Adult"="Adult"),selected="Child")
+  ),
+    mainPanel(
+      h3("Survival Prediction"),
+      h4(textOutput("pred")),
+      p("This is estimated prediction based on a logistic regression model.")
+)
+)
+
+titanic_glm<-glm(Survived~Class+Sex+Age,binomial,titanicdata)
+  pred_titanic<-function(Class,Sex,Age){
+    inputdata<-c(Class,Sex,Age)
+    pred_data<-as.data.frame(t(inputdata))
+    colnames(pred_data)<-c("Class","Sex","Age")
+    survival_prob<-predict(titanic_glm,pred_data,type="response")>0.5
+    return(survival_prob)}
+  
+server<-function(input,output){
+  output$pred<-renderText({pred_titanic(input$c,input$s,input$a)})
+}
+
+shinyApp(ui=ui,server=server)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
